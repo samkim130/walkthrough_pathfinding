@@ -4,6 +4,7 @@ import Node from "./Node/Node";
 
 import "./PathFindingVisualizer.css";
 import { dijkstra } from "../Algorithms/dijkstra.js";
+import { getNodesInShortestPathOrder } from "../Algorithms/dijkstra.js";
 
 //initial start and finish nodes
 const START_NODE_ROW = 10;
@@ -82,7 +83,7 @@ export default class PathFindingVisualizer extends Component {
 
   //render returns the data
   render() {
-    const { grid } = this.state; //destructing assignment to an object //same as "const nodes = this.state.nodes;"
+    const { grid, mouseIsPressed } = this.state; //destructing assignment to an object //same as "const nodes = this.state.nodes;"
     // const {nodes: displayNodes} = this.state; //const displayNodes= this.state.nodes;
     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment
 
