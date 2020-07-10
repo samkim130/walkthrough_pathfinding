@@ -16,10 +16,10 @@ export function dijkstra(grid, startNode, finishNode) {
   //while loop keeps running until there are no more elements left
   while (!!unvisitedNodes.length) {
     //sort the array by distance
-    if (!skip) {
-      sortNodesByDistance(unvisitedNodes);
-      //skip = false;
-    }
+    //if (!skip) {
+    sortNodesByDistance(unvisitedNodes);
+    //skip = false;
+    //}
     //returns the first element in 'unvisitedNodes'
     const closestNode = unvisitedNodes.shift();
 
