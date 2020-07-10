@@ -7,21 +7,15 @@ export const DEFAULT_NODE = {
 };
 
 export default class Node extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {};
-  }
-
   render() {
     const {
+      col,
       isFinish,
       isStart,
-      isVisited,
       isWall,
       onMouseDown,
       onMouseEnter,
       onMouseUp,
-      col,
       row,
     } = this.props;
     const extraClassName = isFinish
@@ -30,9 +24,8 @@ export default class Node extends Component {
       ? "node-start"
       : isWall
       ? "node-wall"
-      : isVisited
-      ? "node-visited"
       : "";
+
     return (
       <div
         id={`node-${row}-${col}`}
@@ -42,7 +35,5 @@ export default class Node extends Component {
         onMouseUp={() => onMouseUp()}
       ></div>
     );
-    // tempelate literals using ``// u can basically write equestions inside tempelate literals
-    //https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals
   }
 }

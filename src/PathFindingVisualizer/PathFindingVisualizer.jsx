@@ -45,32 +45,39 @@ export default class PathFindingVisualizer extends Component {
     this.setState({ mouseIsPressed: false });
   }
 
-  //
-  visualizeDijkstra() {
-    const { grid } = this.state;
-
-    //fetching references to startNode and finishNode
-    const startNode = grid[START_NODE_ROW][START_NODE_COL];
-    const finishNode = grid[FINISH_NODE_ROW][FINISH_NODE_COL];
-
-    const visitedNodesInOrder = dijkstra(grid, startNode, finishNode);
-    this.animateDijkstra(visitedNodesInOrder);
+  animateDijkstra(visitedNodesInOrder, nodesInShortestPathOrder) {
+    for (let i = 0; i <= visitedNodesInOrder.length; i++) {
+      if (i === visitedNodesInOrder.length) {
+        setTimeout(() => {
+          this.animateShortestPath(nodesInShortestPathOrder);
+        }, 10 * i);
+        return;
+      }
+      setTimeout(() => {
+        const node = visitedNodesInOrder[i];
+        document.getElementById(`node-${node.row}-${node.col}`).className =
+          "node node-visited";
+      }, 10 * i);
+    }
   }
 
-  animateDijkstra(visitedNodesInOrder) {
-    for (let i = 0; i < visitedNodesInOrder.length; i++) {
-      const node = visitedNodesInOrder[i];
-      const newGrid = this.state.grid.slice();
-      //"...node" copies directly all the node properties
-      const newNode = {
-        ...node,
-        isVisited: true,
-      };
-      newGrid[node.row][node.col] = newNode;
+  animateShortestPath(nodesInShortestPathOrder) {
+    for (let i = 0; i < nodesInShortestPathOrder.length; i++) {
       setTimeout(() => {
-        this.setState({ grid: newGrid });
-      }, 100 * i);
+        const node = nodesInShortestPathOrder[i];
+        document.getElementById(`node-${node.row}-${node.col}`).className =
+          "node node-shortest-path";
+      }, 50 * i);
     }
+  }
+
+  visualizeDijkstra() {
+    const { grid } = this.state;
+    const startNode = grid[START_NODE_ROW][START_NODE_COL];
+    const finishNode = grid[FINISH_NODE_ROW][FINISH_NODE_COL];
+    const visitedNodesInOrder = dijkstra(grid, startNode, finishNode);
+    const nodesInShortestPathOrder = getNodesInShortestPathOrder(finishNode);
+    this.animateDijkstra(visitedNodesInOrder, nodesInShortestPathOrder);
   }
 
   //render returns the data
@@ -99,34 +106,23 @@ export default class PathFindingVisualizer extends Component {
                   //assigns each element in 'row' to variable 'node'; same thing as for loop with node=row[i]
                   //'nodeIdx' contains the index number of the element in 'row'; basically the 'i' in the for loop
                   //in this case, each element 'node' is each 'createNode' created in 'initializeGrid()'
-                  const {
-                    row,
-                    col,
-                    isStart,
-                    isFinish,
-                    isWall,
-                    isVisited,
-                    distance,
-                    previousNode,
-                  } = node;
+                  const { row, col, isFinish, isStart, isWall } = node;
                   return (
                     // this command is defining components with parameters
                     //https://reactjs.org/docs/components-and-props.html
                     <Node
                       key={nodeIdx}
-                      row={row}
                       col={col}
-                      isWall={isWall}
-                      isStart={isStart}
                       isFinish={isFinish}
-                      distance={distance}
-                      isVisited={isVisited}
-                      previousNode={previousNode}
+                      isStart={isStart}
+                      isWall={isWall}
+                      mouseIsPressed={mouseIsPressed}
                       onMouseDown={(row, col) => this.handleMouseDown(row, col)}
                       onMouseEnter={(row, col) =>
                         this.handleMouseEnter(row, col)
                       }
                       onMouseUp={() => this.handleMouseUp()}
+                      row={row}
                     ></Node>
                   );
                 })}
