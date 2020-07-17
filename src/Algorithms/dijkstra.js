@@ -10,34 +10,43 @@ export function dijkstra(grid, startNode, finishNode) {
   //constant variables cannot be reassigned, but its properties can change
   const unvisitedNodes = getAllNodes(grid);
 
-  //var skip = false;
+  var distance_final = -1;
+  var skip = false;
   //double not (!!) changes objects into boolean
   //https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Logical_NOT
   //while loop keeps running until there are no more elements left
   while (!!unvisitedNodes.length) {
     //sort the array by distance
-    //if (!skip) {
-    sortNodesByDistance(unvisitedNodes);
-    //skip = false;
-    //}
+    if (!skip) {
+      sortNodesByDistance(unvisitedNodes);
+    } else {
+      skip = false;
+    }
+
     //returns the first element in 'unvisitedNodes'
     const closestNode = unvisitedNodes.shift();
 
     // If we encounter a wall, we skip it.
-    if (closestNode.isWall) {
-      //skip = true;
+    if (closestNode.isWall & !(closestNode.isFinish || closestNode.isStart)) {
+      skip = true;
       continue;
     }
 
     // If the closest node is at a distance of infinity,
     // we must be trapped and should therefore stop.
     if (closestNode.distance === Infinity) return visitedNodesInOrder;
+    if ((distance_final > 0) & (distance_final < closestNode.distance))
+      return visitedNodesInOrder;
     closestNode.isVisited = true;
     visitedNodesInOrder.push(closestNode);
 
     //if the last added node is finishNode, end the loop and return the answer;
-    if (closestNode === finishNode) return visitedNodesInOrder;
-    updateUnvisitedNeighbors(closestNode, grid);
+    if (closestNode === finishNode) {
+      distance_final = closestNode.distance;
+      //return visitedNodesInOrder;
+    }
+    if (!((distance_final > 0) & (distance_final <= closestNode.distance)))
+      updateUnvisitedNeighbors(closestNode, grid);
   }
 }
 

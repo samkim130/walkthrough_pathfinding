@@ -29,6 +29,31 @@
   animation-play-state: running;
 }
 
+%visitedAnimation {
+  0% {
+    transform: scale(0.3);
+    background-color: rgba(0, 0, 66, 0.75);
+    color: rgba(0, 0, 66, 0.75);
+    border-radius: 100%;
+  }
+
+  50% {
+    background-color: rgba(17, 104, 217, 0.75);
+    color: rgba(17, 104, 217, 0.75);
+  }
+
+  75% {
+    transform: scale(1.2);
+    background-color: rgba(0, 217, 159, 0.75);
+    color: rgba(0, 217, 159, 0.75);
+  }
+
+  100% {
+    transform: scale(1);
+    background-color: rgba(180, 218, 224, 0.75);
+    color: black;
+  }
+}
 /* stage 0*/
 .node-visited.s0 {
   animation-name: visitedAnimation0;
@@ -186,25 +211,4 @@
     background-color: rgb(255, 254, 106);
     color: black;
   }
-}
-
-.node-visited-noanimation {
-  color: black;
-}
-.node-visited-noanimation.s0 {
-  background-color: rgba(180, 218, 224, 0.75);
-}
-.node-visited-noanimation.s1 {
-  background-color: rgba(120, 218, 224, 0.75);
-}
-.node-visited-noanimation.s2 {
-  background-color: rgba(60, 218, 224, 0.75);
-}
-.node-visited-noanimation.s3 {
-  background-color: rgba(0, 218, 224, 0.75);
-}
-
-.node-shortest-path-noanimation {
-  background-color: rgb(255, 254, 106);
-  color: black;
 }

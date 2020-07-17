@@ -13,6 +13,9 @@ export default class Node extends Component {
       isFinish,
       isStart,
       isWall,
+      isVisited,
+      nodeRef,
+      distance,
       onMouseDown,
       onMouseEnter,
       onMouseUp,
@@ -30,10 +33,13 @@ export default class Node extends Component {
       <div
         id={`node-${row}-${col}`}
         className={`node ${extraClassName}`}
+        ref={nodeRef}
         onMouseDown={() => onMouseDown(row, col)}
         onMouseEnter={() => onMouseEnter(row, col)}
         onMouseUp={() => onMouseUp()}
-      ></div>
+      >
+        {isVisited & false ? `${distance}` : null}
+      </div>
     );
   }
 }
