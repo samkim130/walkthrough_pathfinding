@@ -51,7 +51,7 @@ export function dijkstra(grid, startNode, finishNode) {
 }
 
 //sorts the double array by node distance
-function sortNodesByDistance(unvisitedNodes) {
+export function sortNodesByDistance(unvisitedNodes) {
   //sort by distance property of the nodes in the array
   //https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort
   unvisitedNodes.sort((nodeA, nodeB) => nodeA.distance - nodeB.distance);
@@ -68,7 +68,7 @@ function updateUnvisitedNeighbors(node, grid) {
 }
 
 //fetch neighbors to the 'closestNode' that have not been visited yet
-function getUnvisitedNeighbors(node, grid) {
+export function getUnvisitedNeighbors(node, grid) {
   const neighbors = [];
   //save the positional values of the 'closestNode'
   const { col, row } = node;
@@ -83,7 +83,7 @@ function getUnvisitedNeighbors(node, grid) {
 
 //convert a double array into a single array
 //https://medium.com/javascript-in-plain-english/how-to-deep-copy-objects-and-arrays-in-javascript-7c911359b089
-function getAllNodes(grid) {
+export function getAllNodes(grid) {
   const nodes = [];
   for (const row of grid) {
     for (const node of row) {
@@ -100,6 +100,7 @@ export function getNodesInShortestPathOrder(finishNode) {
   let currentNode = finishNode;
   //keep adding the nodes into 'nodesInShortestPathOrder'
   while (currentNode !== null) {
+    currentNode.isShortestPath = true;
     nodesInShortestPathOrder.unshift(currentNode);
     currentNode = currentNode.previousNode;
   }

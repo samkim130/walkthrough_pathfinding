@@ -6,6 +6,7 @@ import {
   dijkstra,
   getNodesInShortestPathOrder,
 } from "../Algorithms/dijkstra.js";
+import { Astar } from "../Algorithms/Astar.js";
 
 //initial start and finish nodes
 const ROW_LEN = 20;
@@ -26,6 +27,7 @@ export default class PathFindingVisualizer extends Component {
       mouseIsPressed: false,
       animationInAction: false,
       animationComplete: false,
+      isStar: false,
       startReselect: false,
       finishReselect: false,
       start_end_info: [
@@ -91,9 +93,8 @@ export default class PathFindingVisualizer extends Component {
       start_end_info[row_update] = row;
       start_end_info[col_update] = col;
       this.setState({ grid: newGrid, start_end_info: start_end_info });
-
       if (this.state.animationComplete) {
-        const updateGrid = this.updateAnimation();
+        const updateGrid = this.updateAnimation(newGrid);
         this.setState({ grid: updateGrid });
       }
     } else {
@@ -102,35 +103,19 @@ export default class PathFindingVisualizer extends Component {
     }
   }
 
-  updateAnimation() {
-    const grid = getCleanGrid(this.state.grid, false);
+  updateAnimation(newGrid) {
+    const grid = getCleanGrid(newGrid, false, false);
     const startNode =
       grid[this.state.start_end_info[0]][this.state.start_end_info[1]];
     const finishNode =
       grid[this.state.start_end_info[2]][this.state.start_end_info[3]];
 
-    const visitedNodesInOrder = dijkstra(grid, startNode, finishNode);
-    const nodesInShortestPathOrder = getNodesInShortestPathOrder(finishNode);
-    const max_distance = finishNode.distance;
-
-    //reset algo
-    for (let i = 0; i < visitedNodesInOrder.length; i++) {
-      const distance = visitedNodesInOrder[i].distance;
-      const stage = Math.floor((distance / max_distance) * STAGES);
-      const nodeRef_current = visitedNodesInOrder[i].nodeRef.current;
-      nodeRef_current.classList.add(`node-visited-noanimation`);
-      nodeRef_current.classList.add(`s${stage}`);
+    if (this.state.isAstar) {
+      Astar(grid, startNode, finishNode);
+    } else {
+      dijkstra(grid, startNode, finishNode);
     }
-    //reset shortestpath
-    for (let i = 0; i < nodesInShortestPathOrder.length; i++) {
-      const distance = nodesInShortestPathOrder[i].distance;
-      const stage = Math.floor((distance / max_distance) * STAGES);
-      const nodeRef_current = nodesInShortestPathOrder[i].nodeRef.current;
-      nodeRef_current.classList.remove(`node-visited-noanimation`);
-      nodeRef_current.classList.remove(`s${stage}`);
-      nodeRef_current.classList.add("node-shortest-path-noanimation");
-    }
-
+    getNodesInShortestPathOrder(finishNode);
     return grid;
   }
 
@@ -139,23 +124,32 @@ export default class PathFindingVisualizer extends Component {
     if (this.state.startReselect || this.state.finishReselect)
       console.log("finished updating start/finish node");
     this.setState({
+      grid: this.state.grid,
       mouseIsPressed: false,
       startReselect: false,
       finishReselect: false,
     }); //simply no longer press the mouse
   }
 
-  animateDijkstra(visitedNodesInOrder, nodesInShortestPathOrder) {
+  animateAlgorithm(
+    visitedNodesInOrder,
+    nodesInShortestPathOrder,
+    isAstarPressed
+  ) {
     const { grid, start_end_info } = this.state;
-    const max_distance = grid[start_end_info[2]][start_end_info[3]].distance;
+    const max_distance = isAstarPressed
+      ? grid[start_end_info[2]][start_end_info[3]].g_distance
+      : grid[start_end_info[2]][start_end_info[3]].distance;
     for (let i = 0; i <= visitedNodesInOrder.length; i++) {
       if (i === visitedNodesInOrder.length) {
         setTimeout(() => {
-          this.animateShortestPath(nodesInShortestPathOrder);
+          this.animateShortestPath(nodesInShortestPathOrder, isAstarPressed);
         }, 15 * (max_distance + 5));
         return;
       }
-      const distance = visitedNodesInOrder[i].distance;
+      const distance = isAstarPressed
+        ? visitedNodesInOrder[i].g_distance
+        : visitedNodesInOrder[i].distance;
       const stage = Math.floor((distance / max_distance) * STAGES);
       setTimeout(() => {
         const nodeRef_current = visitedNodesInOrder[i].nodeRef.current;
@@ -166,18 +160,23 @@ export default class PathFindingVisualizer extends Component {
     }
   }
 
-  animateShortestPath(nodesInShortestPathOrder) {
+  animateShortestPath(nodesInShortestPathOrder, isAstarPressed) {
     const { grid, start_end_info } = this.state;
-    const max_distance = grid[start_end_info[2]][start_end_info[3]].distance;
+    const max_distance = isAstarPressed
+      ? grid[start_end_info[2]][start_end_info[3]].g_distance
+      : grid[start_end_info[2]][start_end_info[3]].distance;
     for (let i = 0; i <= nodesInShortestPathOrder.length; i++) {
       if (i === nodesInShortestPathOrder.length) {
-        this.setState({ animationInAction: false, animationComplete: true });
+        setTimeout(() => {
+          this.setState({ animationInAction: false, animationComplete: true });
+        }, 50 * i);
         return;
       }
       setTimeout(() => {
-        const stage = Math.floor(
-          (nodesInShortestPathOrder[i].distance / max_distance) * STAGES
-        );
+        const distance = isAstarPressed
+          ? nodesInShortestPathOrder[i].g_distance
+          : nodesInShortestPathOrder[i].distance;
+        const stage = Math.floor((distance / max_distance) * STAGES);
         const nodeRef_current = nodesInShortestPathOrder[i].nodeRef.current;
         nodeRef_current.classList.remove(`node-visited`);
         nodeRef_current.classList.remove(`s${stage}`);
@@ -187,42 +186,63 @@ export default class PathFindingVisualizer extends Component {
     }
   }
 
-  visualizeDijkstra() {
+  visualizeAlgo(isAstarPressed) {
     if (this.state.animationInAction) return;
+    this.setState({ animationInAction: true, isAstar: isAstarPressed });
     const { grid } = this.state;
 
-    this.setState({ grid: getCleanGrid(grid, false) });
+    if (this.state.animationComplete) getCleanGrid(grid, false, true);
 
-    this.setState({ animationInAction: true });
     const startNode =
       grid[this.state.start_end_info[0]][this.state.start_end_info[1]];
     const finishNode =
       grid[this.state.start_end_info[2]][this.state.start_end_info[3]];
 
-    const visitedNodesInOrder = dijkstra(grid, startNode, finishNode);
+    //console.log("A Star algo pressed?", this.state.isAstar);
+    //console.log("Is animation in action?", this.state.animationInAction);
+
+    const visitedNodesInOrder = isAstarPressed
+      ? Astar(grid, startNode, finishNode)
+      : dijkstra(grid, startNode, finishNode);
     const nodesInShortestPathOrder = getNodesInShortestPathOrder(finishNode);
-    this.animateDijkstra(visitedNodesInOrder, nodesInShortestPathOrder);
-    //this.setState({ animationInAction: false });
+    this.animateAlgorithm(
+      visitedNodesInOrder,
+      nodesInShortestPathOrder,
+      isAstarPressed
+    );
   }
 
   resetGrid() {
     const { grid, animationInAction } = this.state;
+    console.log("don't reset if true", animationInAction);
     if (animationInAction) return;
-    this.setState({ grid: getCleanGrid(grid, true), animationComplete: false });
+    this.setState({
+      grid: getCleanGrid(grid, true, false),
+      animationComplete: false,
+    });
   }
 
   //render returns the data
   render() {
-    const { grid, mouseIsPressed } = this.state; //destructing assignment to an object //same as "const nodes = this.state.nodes;"
+    const { grid, start_end_info } = this.state; //destructing assignment to an object //same as "const nodes = this.state.nodes;"
     // const {nodes: displayNodes} = this.state; //const displayNodes= this.state.nodes;
     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment
 
-    console.log("render");
+    if (grid.length > 0) {
+      const finishNode = grid[start_end_info[2]][start_end_info[3]];
+      var max_distance = this.state.isAstar
+        ? finishNode.g_distance
+        : finishNode.distance;
+    }
+    console.log("render", grid);
 
     return (
       <>
-        <button onClick={() => this.visualizeDijkstra()}>
+        <button onClick={() => this.visualizeAlgo(false)}>
           Visualize Dijkstra's algorithm
+        </button>
+        <button onClick={() => this.visualizeAlgo(true)}>
+          Visualize A* algorithm
         </button>
         <button onClick={() => this.resetGrid()}>Reset Grid</button>
         <div className="grid">
@@ -242,25 +262,43 @@ export default class PathFindingVisualizer extends Component {
                     row,
                     col,
                     distance,
+                    h_distance,
+                    g_distance,
                     isFinish,
                     isStart,
                     isWall,
                     isVisited,
+                    isShortestPath,
                     nodeRef,
                   } = node;
+                  const stage = Math.floor(
+                    ((this.state.isAstar ? g_distance : distance) /
+                      max_distance) *
+                      STAGES
+                  );
                   return (
                     // this command is defining components with parameters
                     //https://reactjs.org/docs/components-and-props.html
                     <Node
                       key={nodeIdx}
-                      col={col}
-                      row={row}
-                      distance={distance}
-                      isFinish={isFinish}
-                      isStart={isStart}
-                      isWall={isWall}
-                      isVisited={isVisited}
-                      mouseIsPressed={mouseIsPressed}
+                      coord={{ row, col }}
+                      distance={{
+                        f_distance: distance,
+                        g_distance,
+                        h_distance,
+                        stage,
+                      }}
+                      nodeInfo_bool={{
+                        isStart,
+                        isFinish,
+                        isWall,
+                        isVisited,
+                        isShortestPath,
+                      }}
+                      isAnimationComplete={
+                        this.state.animationComplete &
+                        !this.state.animationInAction
+                      }
                       nodeRef={nodeRef}
                       onMouseDown={(row, col) => this.handleMouseDown(row, col)}
                       onMouseEnter={(row, col) =>
@@ -304,7 +342,10 @@ const createNode = (col, row) => {
     isStart: row === START_NODE_ROW && col === START_NODE_COL,
     isFinish: row === FINISH_NODE_ROW && col === FINISH_NODE_COL,
     distance: Infinity,
+    g_distance: Infinity,
+    h_distance: Infinity,
     isVisited: false,
+    isShortestPath: false,
     isWall: false,
     previousNode: null,
     nodeRef: React.createRef(),
@@ -357,22 +398,16 @@ const getNewGridWithNewStartFinishNodes = (
   return newGrid;
 };
 
-const getCleanGrid = (grid, resetWall) => {
+const getCleanGrid = (grid, resetWall, animationReset) => {
   for (const currentRow of grid) {
     for (const currentNode of currentRow) {
       currentNode.distance = Infinity;
+      currentNode.g_distance = Infinity;
+      currentNode.h_distance = Infinity;
+      currentNode.isShortestPath = false;
       currentNode.isVisited = false;
       if (resetWall) currentNode.isWall = false;
       currentNode.previousNode = null;
-      currentNode.nodeRef.current.className = "";
-      currentNode.nodeRef.current.classList.add("node");
-      if (currentNode.isWall) {
-        currentNode.nodeRef.current.classList.add("node-wall");
-      } else if (currentNode.isStart) {
-        currentNode.nodeRef.current.classList.add("node-start");
-      } else if (currentNode.isFinish) {
-        currentNode.nodeRef.current.classList.add("node-finish");
-      }
     }
   }
   return grid;

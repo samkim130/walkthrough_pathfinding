@@ -153,10 +153,6 @@
   }
 }
 
-.node-wall {
-  background-color: rgb(12, 53, 71);
-}
-
 .node-shortest-path {
   animation-name: shortestPath;
   animation-duration: 1.5s;
@@ -207,4 +203,8 @@
 .node-shortest-path-noanimation {
   background-color: rgb(255, 254, 106);
   color: black;
+}
+
+.node-wall {
+  background-color: rgb(12, 53, 71);
 }
